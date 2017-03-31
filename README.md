@@ -235,7 +235,7 @@ A Scenario-based benchmark is one that runs in a separate process. Therefore, in
 5. Define PostRun Delegate
 6. In the main function of your project, specify a ProcessStartInfo for your executable and provide it to xunit-performance.
 
-You should take care of doing all the setup for your executable (downloading a repository, building, doing a restore, etc.)
+You have the option of doing all the setup for your executable (downloading a repository, building, doing a restore, etc.) or you can indicate the location of your pre-compiled executable.
 
 PreIteration and PostIteration are delegates that will be called once per run of your app, before and after respectively.
 PostRun is a delegate that will be called after all the iterations are complete, and should return an object of type ScenarioBenchmark filled with your tests and metrics names, as well as the numbers you obtained.
@@ -249,8 +249,10 @@ Authoring it might look something like this.
 ```csharp
 public static void Main(string[] args)
 {
+  // Optional setup steps
   CloneRepo();
   Build();
+  
   using (var h = new XunitPerformanceHarness(args))
   {
     var processStartInfo = new ProcessStartInfo();
@@ -267,8 +269,8 @@ public void PreIteration() {} //We don't need this
 ```csharp
 public void PostIteration()
 {
-  Read measurements from txt file
-  Append measurements to buffer   
+  //Read measurements from txt file
+  //Append measurements to buffer   
 } 
 ```
 
@@ -276,14 +278,26 @@ And the PostRun one. We create the ScenarioBenchmark object, and we add only one
 ```csharp
 public ScenarioBenchmark PostRun()
 {
-    var sb = new ScenarioBenchmark(“HelloWorld”);
-    var DoStuff = new ScenarioTestModel("Doing Stuff");
-    var ExTime = new MetricModel(){Name = "ExecutionTime", DisplayName = "Execution Time", Unit = "ms"};
-    DoStuff.Metrics.Add(ExTime);
-    for each iteration:
-      var it = new IterationModel object with the measurement in Buffer
-      DoStuff.Performance.IterationModels.Add(it);
+  var sb = new ScenarioBenchmark(“HelloWorld”);
+  var DoStuff = new ScenarioTestModel("Doing Stuff");
+  var ExTime = new MetricModel(){Name = "ExecutionTime", DisplayName = "Execution Time", Unit = "ms"};
+  DoStuff.Metrics.Add(ExTime);
+  for each iteration:
+    var it = new IterationModel{Iteration=new Dictionary<string, double>()} // Fill in with results
+    DoStuff.Performance.IterationModels.Add(it);
   sb.Tests.Add(DoStuff)
   return sb;
+} 
+```
+
+
+Once you create an instance of the XunitPerformanceHarness, it comes with a configuration object of type ScenarioTestConfiguration, which has default values that you can edit to properly apply to your test requirements.
+
+```csharp
+public class ScenarioTestConfiguration
+{
+  public TimeSpan TimeoutPerIteration {get; set;}
+  public int Iterations {get; set;}
+  public string TemporaryDirectory {get; set;}
 } 
 ```
