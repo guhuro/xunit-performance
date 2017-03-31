@@ -270,7 +270,7 @@ public void PreIteration() {} //We don't need this
 public void PostIteration()
 {
   //Read measurements from txt file
-  //Append measurements to buffer   
+  //Save measurements to buffer   
 } 
 ```
 
